@@ -1,6 +1,7 @@
 use colored::*;
 use serde::Deserialize;
-use std::io;
+use std::{env, io};
+use dotenv::dotenv;
 
 #[derive(Deserialize, Debug)]
 struct WeatherResponse {
@@ -91,4 +92,42 @@ fn get_temperature_emoji(temperature: f64) -> &'static str {
     }
 }
 
+fn main() {
+    println!("{}", "Welcome to Weather Station!".bright_yellow());
 
+    loop {
+        dotenv().ok();
+        let api_key = env::var("API_KEY").expect("API_KEY must be set");
+        
+        println!("{}", "Please enter the name of the city:".bright_green());
+        let mut city = String::new();
+        io::stdin().read_line(&mut city).expect("Failed to read input");
+        let city = city.trim();
+
+        println!("{}", "Please enter the country code (e.g., CA for Canada):".bright_green());
+
+        let mut country_code = String::new();
+        io::stdin().read_line(&mut country_code).expect("Failed to read input");
+        let country_code = country_code.trim();
+
+
+        match get_weather_info(&city, &country_code, &api_key) {
+            Ok(response) => {
+                display_weather_info(&response);
+            }
+            Err(err) => {
+                eprintln!("Error: {}", err);
+            }
+        }
+
+        println!("{}", "Do you want to search for weather in another city? (yes/no):".bright_green());
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Failed to read input");
+        let input = input.trim().to_lowercase();
+
+        if input != "yes" {
+            println!("Thank you for using our software!");
+            break;
+        }
+    }
+}
